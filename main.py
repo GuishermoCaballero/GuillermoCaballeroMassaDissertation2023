@@ -557,8 +557,7 @@ def delete_empty_groups():
 
     for group in groups:
         if (len(group.members) == 0 and group.label != -1):
-            # print('Group with label: ', group.label, ' got empty, sad and deleted')
-            log = 'Group with label: ', group.label, ' got empty, sad and deleted'
+            log = 'Group with label: ', group.label, ' dissapeared due to lack of members '
             write_log(log, moment,0)
             groups.remove(group)
         elif (len(group.members) < 2 and group.label != -1):
@@ -794,6 +793,7 @@ def run_analyzer( video_title, group_tracking, activity_recognition, detect_dang
     # DATA_PATH = os.path.join('ACTIONS_DATA')
     global actions
     actions = ['hello', 'box', 'stand']
+    # actions = ['hello', 'box', 'stand', 'sit', 'squat']
 
     actions = np.array(actions)
 
@@ -808,6 +808,7 @@ def run_analyzer( video_title, group_tracking, activity_recognition, detect_dang
 
     model_activity.load_weights("action_new.h5")
 
+    # model_activity.load_weights("last_action.h5")
     CLASS_NAMES_DICT = model.model.names
 
     byte_tracker = BYTETracker(BYTETrackerArgs())
@@ -976,8 +977,8 @@ if __name__ == '__main__':
 
     if videos:
         st.title("")
-        st.text(videos)
-        st.text(st.text(os.path.abspath(videos.name)))
+        # st.text(videos)
+        # st.text(st.text(os.path.abspath(videos.name)))
 
         # st.text(type(st.text(os.path.abspath(videos.name))))
 
@@ -1036,21 +1037,25 @@ if __name__ == '__main__':
                     with tab1:
                         st.header("Group Tracking")
                         for log in grouping_logs:
-                            st.text(log)
+                            exact_second = int(log['frame'] / log['frame_rate'])
 
-                            # start_time = datetime.datetime.strptime(log['from'], '%M:%S.%f')
-                            # start_second = start_time.second + start_time.microsecond / 1000000.0
-                            # start_second = int(start_second)
-                            #
-                            # if st.button("Show Video", key=log):
-                            #     st.video(file_path, format="video/mp4", start_time=start_second)
+                            minutes = int(exact_second // 60)
+                            seconds = exact_second % 60
+                            formatted_time = f"{minutes:02d}:{seconds:05.2f}"
+
+
+                            st.text(f"{log['message']}. At {formatted_time}")
+
+
+                            if st.button("Show Video", key=log):
+                                st.video(file_path, format="video/mp4", start_time=exact_second)
                             st.title("")
 
                     with tab2:
                         st.header("Object Detection")
                         for log in object_detection_logs:
-                            st.text(log)
-
+                            # st.text(log)
+                            st.text(f"{log['message']}. Since {log['from']}, Untill {log['until']},")
                             start_time = datetime.datetime.strptime(log['from'], '%M:%S.%f')
                             start_second = start_time.second + start_time.microsecond / 1000000.0
                             start_second = int(start_second)
@@ -1062,8 +1067,8 @@ if __name__ == '__main__':
                     with tab3:
                         st.header("Activity Recognition")
                         for log in activity_logs:
-                            st.text(log)
-
+                            # st.text(log)
+                            st.text(f"{log['message']}. Since {log['from']}, Untill {log['until']},")
                             start_time = datetime.datetime.strptime(log['from'], '%M:%S.%f')
                             start_second = start_time.second + start_time.microsecond / 1000000.0
                             start_second = int(start_second)
